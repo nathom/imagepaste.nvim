@@ -11,12 +11,16 @@ local image_syntax = {
     md = { "![](", ")" },
 }
 function M.paste_image()
-    local path = vim.fn.expand("%:p")
+    local path = vim.api.nvim_buf_get_name(0)
     local ext = path:match("%S%.(%w+)$")
     syntax = image_syntax[ext]
 
     if not syntax then
-        error("invalid file extension")
+        if ext == nil then
+            ext = "empty"
+        end
+        print("ImagePaste not available for " .. tostring(ext) .. " files")
+        return
     end
 
     local folder = vim.fn.expand("%:p:h")
