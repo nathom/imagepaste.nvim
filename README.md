@@ -1,6 +1,6 @@
 # imagepaste.nvim
 
-> Not tested across platforms yet!
+> Only working on macOS as of now
 
 Paste images from your clipboard into the buffer.
 
@@ -11,6 +11,8 @@ Supported filetypes:
 
 
 ## Setup
+
+Install `pngpaste`.
 
 With lazy.nvim:
 
