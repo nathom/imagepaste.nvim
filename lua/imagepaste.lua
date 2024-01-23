@@ -1,6 +1,7 @@
 local M = {}
 local syntax = nil
 local image_path = nil
+local resources_folder = nil
 
 local function vim_error(msg)
     vim.cmd("echohl Error")
@@ -9,7 +10,9 @@ local function vim_error(msg)
 end
 local image_syntax = {
     md = { "![](", ")" },
+    tex = { [[\includegraphics[width=\linewidth]{]], "}" },
 }
+
 function M.paste_image()
     local path = vim.api.nvim_buf_get_name(0)
     local ext = path:match("%S%.(%w+)$")
@@ -23,11 +26,14 @@ function M.paste_image()
         return
     end
 
-    local folder = vim.fn.expand("%:p:h")
-    image_path = folder .. "/" .. random_string(16) .. ".jpg"
-    local command = "pngpaste " .. '"' .. image_path .. '"'
+    local folder = path:match("(.+)/")
+    resources_folder = path:match("(.+)%.") .. "_resources"
+    os.execute("mkdir '" .. resources_folder .. "' 2> /dev/null")
+    image_path = random_string(32) .. ".jpg"
+    local command = "pngpaste " .. "'" .. image_path .. "'"
 
     vim.fn.jobstart(command, {
+        cwd = resources_folder,
         on_stderr = on_event,
         on_stdout = on_event,
         on_exit = put_text,
@@ -42,21 +48,21 @@ function put_text(job_id, exit_code)
         vim_error("No image on clipboard!")
         return
     end
-    local formatted_link = syntax[1] .. image_path .. syntax[2]
+    local formatted_link = syntax[1]
+        .. resources_folder:match(".+/(.+)")
+        .. "/"
+        .. image_path
+        .. syntax[2]
     local prev_reg = vim.fn.getreg("z")
     vim.fn.setreg("z", formatted_link)
-    vim.cmd("put z")
+    vim.cmd([[normal! "zp]])
+    -- vim.cmd("put z")
     vim.fn.setreg("z", prev_reg)
 end
 
 local function on_event(job_id, data, event)
-    if event == "stdout" or event == "stderr" then
-        local error_msg = table.concat(data, "")
-        vim_error(error_msg)
-    end
-    -- for _, d in ipairs(data) do
-    --     print(d)
-    -- end
+    local error_msg = table.concat(data, "")
+    vim_error(error_msg)
 end
 
 math.randomseed(os.time())
