@@ -1,6 +1,6 @@
 # imagepaste.nvim
 
-> Only working on macOS as of now
+> Only tested on macOS as of now
 
 Paste images from your clipboard into the buffer.
 
